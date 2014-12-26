@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-basedir=$(cd $(dirname $0)/..; pwd)
+basedir=$(cd $(dirname $0)/../..; pwd)
 
 # user prompts
 getready() {
@@ -19,9 +19,11 @@ echo "set editing-mode vi" > ~/.inputrc
 
 getready "install helpers"
 for FIL in gitexport pybuild; do
-  cp $basedir/user/$FIL ~/bin
+  cp $basedir/files/user/$FIL ~/bin
 done
-cp $basedir/etc/pyenv.helpers ~/etc
+cp $basedir/files/user/pyenv.helpers ~/etc
+source ~/etc/pyenv.helpers
+mkdir -p $VIRTUALENV_BASEDIR
 
 getready "setup dotfiles"
 mkdir -p ~/git
@@ -34,7 +36,7 @@ for FIL in gitconfig vimrc tmux.conf; do
 done
 
 getready "setup vim and its plugins"
-$basedir/user/vimsetup
+$basedir/files/user/vimsetup
 
 # manual steps
 echo "Do the following to complete basic setup:"

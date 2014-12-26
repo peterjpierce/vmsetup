@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-basedir=$(cd $(dirname $0)/..; pwd)
+basedir=$(cd $(dirname $0)/../..; pwd)
 
 users="peter"
 packages="
@@ -22,10 +22,19 @@ getready() {
   fi
 }
 
-getready "set editing mode"
+
+# must be root
+youare=$(whoami)
+if [[ ! $youare = "root" ]]; then
+  echo "you must become root to run this"
+  exit 0
+if
+
+getready "set editing mode and password for root"
 read -p "press enter to continue..."
 set -o vi
 echo "set editing-mode vi" > ~/.inputrc
+passwd
 
 getready "update packages"
 apt-get update
@@ -37,7 +46,7 @@ for pkg in $packages; do
 done
 
 getready "install and start firewall"
-cp -p $basedir/root/firewall_rules /usr/local/bin
+cp -p $basedir/files/server/firewall_rules /usr/local/bin
 /usr/local/bin/firewall_rules
 iptables -L
 
