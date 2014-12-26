@@ -7,6 +7,7 @@ packages="
   vim
   git
   tmux
+  iptables
 "
 optdirs="
   python
@@ -28,10 +29,9 @@ youare=$(whoami)
 if [[ ! $youare = "root" ]]; then
   echo "you must become root to run this"
   exit 0
-if
+fi
 
 getready "set editing mode and password for root"
-read -p "press enter to continue..."
 set -o vi
 echo "set editing-mode vi" > ~/.inputrc
 passwd
@@ -51,19 +51,19 @@ cp -p $basedir/files/server/firewall_rules /usr/local/bin
 iptables -L
 
 getready "create users"
-for user in users; do
+for user in $users; do
   useradd -g 100 -m $user
 done
 
 getready "prep /opt"
-for optdir in optdirs; do
+for optdir in $optdirs; do
   mkdir -p /opt/$optdir
   chown peter:100 /opt/$optdir
 done
 
 # manual steps
 echo "Do the following to complete basic setup:"
-for user in users; do
+for user in $users; do
   echo "passwd $user"
   echo "(install OpenSSH public key for $user)"
 done

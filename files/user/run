@@ -12,10 +12,17 @@ getready() {
   fi
 }
 
-getready "set editing mode"
+getready "set editing mode and add keys"
 read -p "press enter to continue..."
 set -o vi
 echo "set editing-mode vi" > ~/.inputrc
+ssh-keygen -t rsa
+
+getready "paste and save an OpenSSH public key for this user's access"
+FIL='~/.ssh/authorized_keys'
+touch $FIL
+chmod 600 $FIL
+vim $FIL
 
 getready "install helpers"
 for FIL in gitexport pybuild; do
