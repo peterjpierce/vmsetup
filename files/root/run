@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+basedir=$(cd $(dirname $0)/..; pwd)
+
+users="peter"
+packages="
+  vim
+  git
+  tmux
+"
+optdirs="
+  python
+"
+
+# user prompts
+getready() {
+  echo $1
+  read -s -n 1 -p "press q to quit, any other key to continue " cmd
+  echo ""
+  if [[ $cmd = 'q' ]] || [[ $cmd = 'Q' ]]; then
+    exit 0
+  fi
+}
+
+getready "set editing mode"
+read -p "press enter to continue..."
+set -o vi
+echo "set editing-mode vi" > ~/.inputrc
+
+getready "update packages"
+apt-get update
+apt-get upgrade
+
+getready "install key packages"
+for pkg in $packages; do
+  apt-get install $pkg
+done
+
+getready "install and start firewall"
+cp -p $basedir/root/firewall_rules /usr/local/bin
+/usr/local/bin/firewall_rules
+iptables -L
+
+getready "create users"
+for user in users; do
+  useradd -g 100 -m $user
+done
+
+getready "prep /opt"
+for optdir in optdirs; do
+  mkdir -p /opt/$optdir
+  chown peter:100 /opt/$optdir
+done
+
+# manual steps
+echo "Do the following to complete basic setup:"
+for user in users; do
+  echo "passwd $user"
+  echo "(install OpenSSH public key for $user)"
+done
+echo "  vim /etc/ssh/sshd_config   # remove root login and password logins"
+echo "  /etc/init.d/ssh restart"

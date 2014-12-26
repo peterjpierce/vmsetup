@@ -1,0 +1,45 @@
+#!/bin/sh
+
+me=$(basename $0)
+
+usage() {
+  echo "usage: $me <version> <src_dir>"
+  echo "   ex: $me 3.4.1 /tmp/Python-3.4.1"
+  exit 0
+}
+
+if [[ $# -ne 2 ]]; then
+  usage
+elif [[ ! -f $2/configure ]]; then
+  echo "bad source directory: $2"
+  usage
+else
+  VER=$1
+  SRC=$2
+fi
+
+PREFIX=/opt/python/$VER
+export LD_RUN_PATH=$PREFIX/lib
+
+cd $SRC
+make distclean
+
+./configure \
+  --enable-shared \
+  --prefix=$PREFIX \
+  | tee /tmp/python-$VER-configure-$(date -d +%Y%m%d_%H%M%S)
+
+if [[ $? -gt 0 ]]; then
+  echo "oops"
+  exit 1
+fi
+
+make
+
+if [[ $? -gt 0 ]]; then
+  echo "oops"
+  exit 1
+else
+  echo "you still need to do \"make install\""
+fi
+

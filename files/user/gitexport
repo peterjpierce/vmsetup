@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Create a .tgz archive of the latest commit to a git project, using
+# the branch currently checked out.
+#   $1 is the local git project directory (relative path okay)
+#   $2 is an optional output directory (defaults to /tmp)
+
+me=$(basename $0)
+
+usage() {
+  echo "usage: $me <project_dir> [output_dir]"
+  echo "   ex: $me ."
+  echo "       $me ~/git/ppyutil /path/to/dir"
+  exit 0
+}
+
+# process args
+if [[ $# -eq 0 ]]; then
+  usage
+elif [[ $1 = '-h' ]] || [[ $1 = '--help' ]]; then
+  usage
+else
+  projdir=$1
+  if [[ ! -d ${projdir}/.git ]]; then
+    echo "$projdir is not a valid git project"
+    usage
+  elif [[ -n $2 ]] && [[ -d $2 ]]; then
+    outdir=$2
+  else
+    outdir=/tmp
+  fi
+fi
+
+cd $projdir
+export pre=$(basename $(pwd))
+
+# filter to remove .gitignore if it will be in the archive
+filter='cat -'
+if [[ -f .gitignore ]] && [[ ! $(grep ".gitignore" .gitignore | wc -c) -gt 0 ]]; then
+  filter="gtar --delete $pre/.gitignore"
+fi
+
+# build context
+branch=$(git status | grep "On branch" | cut -f4 -d' ')
+commit=$(git log --oneline | head -1 | cut -c1-7)
+datestamp=$(date +%Y%m%d)
+outfile=$outdir/${pre}_${datestamp}_${commit}.tgz
+
+# create the compressed tarball (.tgz)
+git archive --prefix=$pre/ HEAD \
+  | $filter \
+  | gzip -c  > $outfile
+
+# display results
+if [[ $? -gt 0 ]]; then
+  echo "error building archive"
+  exit 1
+else
+  echo "  project: $pre"
+  echo "   branch: $branch"
+  echo "   commit: $commit"
+  echo "  tarball: $outfile"
+  exit 0
+fi

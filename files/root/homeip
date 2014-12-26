@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $iptablesRuleNum = 7;
+my $storeIp = '/tmp/lastJohnIp';
+my $lastIp = '0';
+
+chomp( my $currIp = `host nanomaine.homeip.net | cut -f4 -d' '` );
+
+if ( -f $storeIp ) { 
+  chomp( $lastIp = `cat $storeIp` );
+}
+  
+unless ( $currIp eq $lastIp ) { 
+
+  # -- replace the current rule
+  system( "/sbin/iptables -R INPUT $iptablesRuleNum -s $currIp -p tcp --dport 22 -j ACCEPT" );
+  #print "$currIp\n";
+
+  # -- persist new IP
+  open( STO, "> $storeIp" ) || die "trouble storing IP: $!\n";
+  print( STO $currIp );
+  close( STO );  
+
+}
