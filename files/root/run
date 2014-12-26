@@ -60,3 +60,4 @@ for user in users; do
 done
 echo "  vim /etc/ssh/sshd_config   # remove root login and password logins"
 echo "  /etc/init.d/ssh restart"
+echo "  vim /etc/rc.local          # to invoke /usr/local/bin/firewall_rules upon reboot"
