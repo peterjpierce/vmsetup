@@ -12,6 +12,7 @@ packages="
 optdirs="
   python
 "
+default_shell=$(which bash)
 
 # user prompts
 getready() {
@@ -52,7 +53,7 @@ iptables -L
 
 getready "create users"
 for user in $users; do
-  useradd -g 100 -m $user
+  useradd -g 100 -m -s $default_shell $user
 done
 
 getready "prep /opt"

@@ -50,6 +50,6 @@ $basedir/files/user/vimsetup
 # manual steps
 echo "Do the following to complete basic setup:"
 echo "  - download, build and install python 2 and 3 to /opt/python using $HOME/bin/pybuild"
-echo "  - edit .bashr or .profile to set PATH for Python, and to source $HOME/etc/pyenv.helpers"
+echo "  - edit .bashrc or .profile to set PATH for Python, and to source $HOME/etc/pyenv.helpers"
 echo "  - verify PK auth working from remote accounts"
 echo "  - update $HOME/.ssh/config within remote accounts"
