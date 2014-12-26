@@ -25,11 +25,13 @@ chmod 600 $FIL
 vim $FIL
 
 getready "install helpers"
+cd $HOME
+mkdir -p bin etc
 for FIL in gitexport pybuild; do
-  cp $basedir/files/user/$FIL $HOME/bin
+  cp $basedir/files/user/$FIL bin/
 done
-cp $basedir/files/user/pyenv.helpers $HOME/etc
-source $HOME/etc/pyenv.helpers
+cp $basedir/files/user/pyenv.helpers etc/
+source etc/pyenv.helpers
 mkdir -p $VIRTUALENV_BASEDIR
 
 getready "setup dotfiles"
