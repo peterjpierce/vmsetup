@@ -15,28 +15,28 @@ getready() {
 getready "set editing mode and add keys"
 read -p "press enter to continue..."
 set -o vi
-echo "set editing-mode vi" > ~/.inputrc
+echo "set editing-mode vi" > $HOME/.inputrc
 ssh-keygen -t rsa
 
 getready "paste and save an OpenSSH public key for this user's access"
-FIL='~/.ssh/authorized_keys'
+FIL=$HOME/.ssh/authorized_keys
 touch $FIL
 chmod 600 $FIL
 vim $FIL
 
 getready "install helpers"
 for FIL in gitexport pybuild; do
-  cp $basedir/files/user/$FIL ~/bin
+  cp $basedir/files/user/$FIL $HOME/bin
 done
-cp $basedir/files/user/pyenv.helpers ~/etc
-source ~/etc/pyenv.helpers
+cp $basedir/files/user/pyenv.helpers $HOME/etc
+source $HOME/etc/pyenv.helpers
 mkdir -p $VIRTUALENV_BASEDIR
 
 getready "setup dotfiles"
-mkdir -p ~/git
-cd ~/git
+mkdir -p $HOME/git
+cd $HOME/git
 git clone https://github.com/peterjpierce/dotfiles.git
-cd ~
+cd $HOME
 for FIL in gitconfig vimrc tmux.conf; do
   ln -s git/dotfiles/$FIL .${FIL}
   ls -l .${FIL}
@@ -47,7 +47,7 @@ $basedir/files/user/vimsetup
 
 # manual steps
 echo "Do the following to complete basic setup:"
-echo "  - download, build and install python 2 and 3 to /opt/python using ~/bin/pybuild"
-echo "  - edit .bashr or .profile to set PATH for Python, and to source ~/etc/pyenv.helpers"
+echo "  - download, build and install python 2 and 3 to /opt/python using $HOME/bin/pybuild"
+echo "  - edit .bashr or .profile to set PATH for Python, and to source $HOME/etc/pyenv.helpers"
 echo "  - verify PK auth working from remote accounts"
-echo "  - update ~/.ssh/config within remote accounts"
+echo "  - update $HOME/.ssh/config within remote accounts"
