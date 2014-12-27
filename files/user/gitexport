@@ -37,7 +37,7 @@ export pre=$(basename $(pwd))
 # filter to remove .gitignore if it will be in the archive
 filter='cat -'
 if [[ -f .gitignore ]] && [[ ! $(grep ".gitignore" .gitignore | wc -c) -gt 0 ]]; then
-  filter="gtar --delete $pre/.gitignore"
+  filter="tar --delete $pre/.gitignore"
 fi
 
 # build context

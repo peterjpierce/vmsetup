@@ -33,18 +33,15 @@ if [[ ! $youare = "root" ]]; then
 fi
 
 getready "set editing mode and password for root"
-set -o vi
 echo "set editing-mode vi" > ~/.inputrc
 passwd
 
-getready "update packages"
+getready "upgrade packages"
 apt-get update
 apt-get upgrade
 
 getready "install key packages"
-for pkg in $packages; do
-  apt-get install $pkg
-done
+apt-get install $(echo $packages)
 
 getready "install and start firewall"
 cp -p $basedir/files/server/firewall_rules /usr/local/bin

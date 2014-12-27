@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 me=$(basename $0)
 
 usage() {
   echo "usage: $me <version> <src_dir>"
-  echo "   ex: $me 3.4.1 /tmp/Python-3.4.1"
+  echo "   ex: $me 3.4.2 /tmp/Python-3.4.2"
   exit 0
 }
 
@@ -42,4 +42,3 @@ if [[ $? -gt 0 ]]; then
 else
   echo "you still need to do \"make install\""
 fi
-
