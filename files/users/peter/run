@@ -30,7 +30,7 @@ for FIL in gitconfig vimrc tmux.conf; do
 done
 
 getready "setup vim and its plugins"
-$basedir/files/user/vimsetup
+$workdir/vimsetup
 
 # manual steps
 echo "Do the following to complete basic setup for user \"$youare\":"
