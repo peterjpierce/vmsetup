@@ -11,22 +11,47 @@ getready() {
   fi
 }
 
+install_user_files() {
+  fromdir=$1
+
+  for subdir in bin etc; do
+    if [[ -d $fromdir/$subdir ]]; then
+      for nextfile in $(ls $fromdir/$subdir); do
+
+        if [[ -f $HOME/$subdir/$nextfile ]]; then
+          echo "$subdir/$nextfile is already installed"
+        else
+          echo "installing $subdir/$nextfile"
+          mkdir -p $HOME/$subdir
+          cp $fromdir/$subdir/$nextfile $HOME/$subdir
+        fi
+
+      done
+    fi
+  done
+
+  if [[ -f $HOME/etc/pyenv.helpers ]]; then
+    source $HOME/etc/pyenv.helpers
+    echo "creating Python virtual environment directory $VIRTUALENV_BASEDIR"
+    mkdir -p $VIRTUALENV_BASEDIR
+  fi
+}
+
 discover_os() {
   distro=""
   supported=$(ls $basedir/etc/packages.* | cut -f2 -d'.')
 
   for attempt in $supported; do
-    hit=$(uname -v | grep $attempt)
+    hit=$(uname -v | grep -i $attempt)
     if [[ -n $hit ]]; then 
       distro=$attempt
     fi
   done
 
-  if [[ -n $system_type ]]; then
+  if [[ -n $distro ]]; then
     echo $distro
   else
     echo "unsupported distro: $(uname -v)"
-    exit 1
   fi
 }
   

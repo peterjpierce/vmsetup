@@ -1,38 +1,23 @@
 #!/usr/bin/env bash
 
-basedir=$(cd $(dirname $0)/../..; pwd)
+basedir=$(cd $(dirname $0)/../../..; pwd)
+workdir=$(cd $(dirname $0); pwd)
+source $basedir/etc/includes
 
-# user prompts
-getready() {
-  echo $1
-  read -s -n 1 -p "press q to quit, any other key to continue " cmd
-  echo ""
-  if [[ $cmd = 'q' ]] || [[ $cmd = 'Q' ]]; then
-    exit 0
-  fi
-}
-
-getready "set editing mode and add keys"
-read -p "press enter to continue..."
-set -o vi
+getready "set editing mode"
 echo "set editing-mode vi" > $HOME/.inputrc
+
+getready "build local OpenSSH keys"
 ssh-keygen -t rsa
 
-getready "paste and save an OpenSSH public key for this user's access"
+getready "paste and save an OpenSSH public key for remote access"
 FIL=$HOME/.ssh/authorized_keys
 touch $FIL
 chmod 600 $FIL
 vim $FIL
 
-getready "install helpers"
-cd $HOME
-mkdir -p bin etc
-for FIL in gitexport pybuild; do
-  cp $basedir/files/user/$FIL bin/
-done
-cp $basedir/files/user/pyenv.helpers etc/
-source etc/pyenv.helpers
-mkdir -p $VIRTUALENV_BASEDIR
+getready "install helper files for $youare"
+install_user_files $workdir
 
 getready "setup dotfiles"
 mkdir -p $HOME/git
@@ -48,7 +33,7 @@ getready "setup vim and its plugins"
 $basedir/files/user/vimsetup
 
 # manual steps
-echo "Do the following to complete basic setup:"
+echo "Do the following to complete basic setup for user \"$youare\":"
 echo "  - download, build and install python 2 and 3 to /opt/python using $HOME/bin/pybuild"
 echo "  - edit .bashrc or .profile to set PATH for Python, and to source $HOME/etc/pyenv.helpers"
 echo "  - verify PK auth working from remote accounts"

@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+basedir=$(cd $(dirname $0); pwd)
+source $basedir/etc/includes
+source $basedir/etc/main.conf
+packages=$(cat $basedir/etc/packages.$distro)
+
+# must be root
+if [[ $youare != "root" ]]; then
+  echo "you must become root to run this"
+  exit 0
+fi
+
+getready "set editing mode and password for root"
+echo "set editing-mode vi" > ~/.inputrc
+passwd
+
+getready "upgrade packages"
+apt-get update
+apt-get upgrade
+
+getready "install key packages"
+apt-get install $(echo $packages)
+
+getready "install and start firewall"
+cp -p $basedir/files/server/firewall_rules /usr/local/bin
+/usr/local/bin/firewall_rules
+iptables -L
+
+getready "create users"
+
+# primary user
+source $basedir/files/user/$primary_user/user.info
+useradd -g $GROUP -m -s $SHELL -c "$COMMENT" $USERNAME
+echo "set password for $USERNAME"
+passwd $USERNAME
+chown -R $USERNAME:$group $basedir/files/users/$USERNAME
+echo "set up environment for $USERNAME"
+su $USERNAME -c "$basedir/files/users/$primary_user/run"
+
+# optional additional users
+ask_again=1
+while [[ $ask_again -gt 0 ]]; do
+  read -s -n 1 -p "create another user? [y|N] " moreusers
+  echo ""
+
+  if [[ $moreusers =~ [yY] ]]; then
+    read -p "enter username: " user
+    echo ""
+
+    userdir=$basedir/files/users/$user
+    if [[ -f $userdir/user.info ]]; then
+      echo "using definitions in $user/user.info"
+      source $userdir/user.info
+    else
+      USERNAME=$user
+      read -p "enter name (comment) for $USERNAME: " COMMENT
+      echo ""
+      GROUP=$default_group
+      SHELL=$default_shell
+    fi
+
+    if [[ -d /home/$USERNAME ]]; then
+      echo "user $USERNAME already exists"
+    else
+      useradd -g $GROUP -m -s $SHELL -c "$COMMENT" $USERNAME
+      echo "set password for $USERNAME"
+      passwd $USERNAME
+    fi
+
+    if [[ -f $userdir/run ]]; then
+      chown -R $USERNAME:$GROUP $basedir/files/users/$user
+      echo "set up environment for $USERNAME"
+      su $USERNAME -c "$basedir/files/users/$user/run"
+    fi
+
+  else
+    ask_again=0
+  fi
+done
+
+# directories under /opt owned by primary user
+getready "prep /opt"
+for optdir in $optdirs; do
+  DIR=/opt/$optdir
+  echo "making $DIR"
+  mkdir -p $DIR
+  chown $primary_user:$group $DIR
+done
+
+# manual steps
+echo "Do the following to complete basic setup:"
+echo "  vim /etc/ssh/sshd_config   # remove root login and allow PK auth only"
+echo "  /etc/init.d/ssh restart"
+echo "  vim /etc/rc.local          # to invoke /usr/local/bin/firewall_rules upon reboot"

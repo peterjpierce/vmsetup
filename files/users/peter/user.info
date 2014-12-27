@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+USERNAME=peter
+GROUP=users
+COMMENT="Peter Pierce"
+SHELL=$(which bash)
