@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+youare=$(whoami)
+
+getready() {
+  echo $1
+  read -s -n 1 -p "press q to quit, any other key to continue " cmd
+  echo ""
+  if [[ $cmd = 'q' ]] || [[ $cmd = 'Q' ]]; then
+    exit 0
+  fi
+}
+
+discover_os() {
+  distro=""
+  supported=$(ls $basedir/etc/packages.* | cut -f2 -d'.')
+
+  for attempt in $supported; do
+    hit=$(uname -v | grep $attempt)
+    if [[ -n $hit ]]; then 
+      distro=$attempt
+    fi
+  done
+
+  if [[ -n $system_type ]]; then
+    echo $distro
+  else
+    echo "unsupported distro: $(uname -v)"
+    exit 1
+  fi
+}
+  
+distro=$(discover_os)

@@ -1,32 +1,11 @@
 #!/usr/bin/env bash
 
 basedir=$(cd $(dirname $0)/../..; pwd)
-
-users="peter"
-packages="
-  vim
-  git
-  tmux
-  iptables
-"
-optdirs="
-  python
-"
-default_shell=$(which bash)
-
-# user prompts
-getready() {
-  echo $1
-  read -s -n 1 -p "press q to quit, any other key to continue " cmd
-  echo ""
-  if [[ $cmd = 'q' ]] || [[ $cmd = 'Q' ]]; then
-    exit 0
-  fi
-}
-
+source $basedir/includes
+source $basedir/main.conf
+packages=$(cat $basedir/etc/packages.$distro)
 
 # must be root
-youare=$(whoami)
 if [[ ! $youare = "root" ]]; then
   echo "you must become root to run this"
   exit 0
@@ -49,22 +28,47 @@ cp -p $basedir/files/server/firewall_rules /usr/local/bin
 iptables -L
 
 getready "create users"
-for user in $users; do
-  useradd -g 100 -m -s $default_shell $user
+
+# primary user
+useradd -g $group -m -s $default_shell -c "$primary_comment" $primary_user
+echo "set password for $primary_user"
+passwd $primary_user
+chown -R $primary_user:$group $basedir/files/user/
+su $primary_user -c "$basedir/files/user/run"
+
+# optional additional users
+ask_again=1
+while [[ $ask_again ]]; do
+  read -s -n 1 -p "create another user in group \"$group\"? [y|N] " moreusers
+
+  if [[ $moreusers = 'y' ]] || [[ $moreusers = 'Y' ]]; then
+    read -s -p "enter username: " user
+    read -s -p "enter name (comment) for $user " friendlyname
+
+    if [[ -d /home/$user ]]; then
+      echo "user $user already exists"
+    else
+      useradd -g $group -m -s $default_shell -c "$friendlyname" $user
+      echo "set password for $user"
+      passwd $user
+    fi
+
+  else
+    ask_again=0
+  fi
 done
 
+# directories under /opt owned by primary user
 getready "prep /opt"
 for optdir in $optdirs; do
-  mkdir -p /opt/$optdir
-  chown peter:100 /opt/$optdir
+  DIR=/opt/$optdir
+  echo "making $DIR"
+  mkdir -p $DIR
+  chown $primary_user:$group $DIR
 done
 
 # manual steps
 echo "Do the following to complete basic setup:"
-for user in $users; do
-  echo "passwd $user"
-  echo "(install OpenSSH public key for $user)"
-done
-echo "  vim /etc/ssh/sshd_config   # remove root login and password logins"
+echo "  vim /etc/ssh/sshd_config   # remove root login and allow PK auth only"
 echo "  /etc/init.d/ssh restart"
 echo "  vim /etc/rc.local          # to invoke /usr/local/bin/firewall_rules upon reboot"
