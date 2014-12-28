@@ -1,44 +1,65 @@
 #!/usr/bin/env bash
 
 me=$(basename $0)
+url_pattern='https://www.python.org/ftp/python/x.y.z/Python-x.y.z.tgz'
 
 usage() {
-  echo "usage: $me <version> <src_dir>"
-  echo "   ex: $me 3.4.2 /tmp/Python-3.4.2"
+  echo "usage: $me <version> [install_dir]"
+  echo "   ex: $me 3.4.2"
+  echo "       $me 3.4.3 /home/kelly/py/3.4.3"
   exit 0
 }
 
-if [[ $# -ne 2 ]]; then
-  usage
-elif [[ ! -f $2/configure ]]; then
-  echo "bad source directory: $2"
+# handle args
+if [[ $# -lt 1 ]] || [[ $# -gt 2 ]]; then
   usage
 else
-  VER=$1
-  SRC=$2
+  if [[ $1 =~ [23]\.[0-9]\.[0-9]+ ]]; then
+    version=$1
+    [[ -n $2 ]] && prefix=$2 || prefix=/opt/python/$version
+    if [[ -e $prefix ]]; then
+      echo "cannot proceed because \"$prefix\" already exists"
+      exit 1
+    fi
+  else
+    echo "\"$1\" is not a valid version"
+    exit 1
+  fi
 fi
 
-PREFIX=/opt/python/$VER
-export LD_RUN_PATH=$PREFIX/lib
+# download source from python.org
+tmpdir=/tmp/pybuild_$(date +%Y%m%d_%H%M%S)
+source=$(echo $url_pattern | perl -pe "s/x.y.z/$version/g")
+mkdir $tmpdir && cd $tmpdir
+curl -LO $source
+[[ $? -gt 0 ]] && echo "error downloading source" && exit 1
+tar -xzf Python-$version.tgz && cd Python-$version
+if [[ $? -gt 0 ]] || [[ ! -f ./configure ]]; then
+  echo "error obtaining a valid set of source files"
+fi
 
-cd $SRC
-make distclean
-
+# configure
+export LD_RUN_PATH=$prefix/lib
 ./configure \
   --enable-shared \
-  --prefix=$PREFIX \
-  | tee /tmp/python-$VER-configure-$(date -d +%Y%m%d_%H%M%S)
+  --prefix=$prefix \
+  | tee /$tmpdir/python-$version-configure-$(date +%Y%m%d_%H%M%S)
+[[ $? -gt 0 ]] && echo "error configuring" && exit 1
 
-if [[ $? -gt 0 ]]; then
-  echo "oops"
-  exit 1
-fi
-
+# build
 make
+[[ $? -gt 0 ]] && echo "error building" && exit 1
 
-if [[ $? -gt 0 ]]; then
-  echo "oops"
-  exit 1
-else
-  echo "you still need to do \"make install\""
+# install
+echo "installing to $prefix"
+make install > $tmpdir/python-$version-install-$(date +%Y%m%d_%H%M%S)
+[[ $? -gt 0 ]] && echo "error installing" && exit 1
+
+if [[ -f $prefix/bin/pip3 ]]; then
+  echo "adding symlinks in $prefix/bin"
+  cd $prefix/bin
+  ln -s pip3 pip
+  ln -s python3 python
+  echo "listing of $prefix/bin"
+  ls -l
 fi
