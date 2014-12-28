@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 me=$(basename $0)
+bindir=$(dirname $0)
 url_pattern='https://www.python.org/ftp/python/x.y.z/Python-x.y.z.tgz'
 
 usage() {
@@ -60,6 +61,11 @@ if [[ -f $prefix/bin/pip3 ]]; then
   cd $prefix/bin
   ln -s pip3 pip
   ln -s python3 python
-  echo "listing of $prefix/bin"
-  ls -l
+else
+  echo "installing pip and virtualenv (and wrapper)"
+  $prefix/bin/python $bindir/get-pip.py
+  [[ $? -gt 0 ]] && echo "error installing pip" && exit 1
+  $prefix/bin/pip install virtualenvwrapper
 fi
+echo "listing of $prefix/bin"
+ls -l
