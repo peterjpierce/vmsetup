@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
+default_basedir=/opt/python
+
 me=$(basename $0)
-bindir=$(dirname $0)
+bindir=$(cd $(dirname $0); pwd)
 url_pattern='https://www.python.org/ftp/python/x.y.z/Python-x.y.z.tgz'
 
 usage() {
   echo "usage: $me <version> [install_dir]"
   echo "   ex: $me 3.4.2"
   echo "       $me 3.4.3 /home/kelly/py/3.4.3"
+  echo "(default install_dir=$default_basedir/<version>)"
   exit 0
 }
 
@@ -17,7 +20,7 @@ if [[ $# -lt 1 ]] || [[ $# -gt 2 ]]; then
 else
   if [[ $1 =~ [23]\.[0-9]\.[0-9]+ ]]; then
     version=$1
-    [[ -n $2 ]] && prefix=$2 || prefix=/opt/python/$version
+    [[ -n $2 ]] && prefix=$2 || prefix=$default_basedir/$version
     if [[ -e $prefix ]]; then
       echo "cannot proceed because \"$prefix\" already exists"
       exit 1
@@ -68,4 +71,4 @@ else
   $prefix/bin/pip install virtualenvwrapper
 fi
 echo "listing of $prefix/bin"
-ls -l
+ls -l $prefix/bin
