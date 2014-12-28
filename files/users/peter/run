@@ -11,10 +11,7 @@ getready "build local OpenSSH keys"
 ssh-keygen -t rsa
 
 getready "paste and save an OpenSSH public key for remote access"
-FIL=$HOME/.ssh/authorized_keys
-touch $FIL
-chmod 600 $FIL
-vim $FIL
+update_authorized_keys
 
 getready "install helper files for $youare"
 install_user_files $workdir

@@ -30,7 +30,7 @@ iptables -L
 getready "create users"
 
 # primary user
-source $basedir/files/users/$primary_user/user.info
+source $basedir/files/users/$primary_user/user.conf
 useradd -g $GROUP -m -s $SHELL -c "$COMMENT" $USERNAME
 echo "set password for $USERNAME"
 passwd $USERNAME
@@ -48,9 +48,9 @@ while [[ $ask_again -gt 0 ]]; do
     read -p "enter username: " user
 
     userdir=$basedir/files/users/$user
-    if [[ -f $userdir/user.info ]]; then
-      echo "using definitions in $user/user.info"
-      source $userdir/user.info
+    if [[ -f $userdir/user.conf ]]; then
+      echo "using definitions in $user/user.conf"
+      source $userdir/user.conf
     else
       USERNAME=$user
       read -p "enter name (comment) for $USERNAME: " COMMENT

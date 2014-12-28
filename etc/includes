@@ -11,9 +11,36 @@ getready() {
   fi
 }
 
+update_authorized_keys() {
+  FIL=$HOME/.ssh/authorized_keys
+  [[ -f $FIL ]] || ( touch $FIL && chmod 600 $FIL )
+  vim $FIL
+}
+
 install_user_files() {
   fromdir=$1
 
+  # shared files per user.conf
+  if [[ -f $fromdir/user.conf ]]; then
+    source $fromdir/user.conf
+
+    for sharedfile in $INSTALL_SHARES; do
+      fromfile=$basedir/files/shared/$sharedfile
+
+      if [[ -f $fromfile ]]; then
+        echo "installing shared file $sharedfile"
+        tofile=/home/$USERNAME/$sharedfile
+        mkdir -p $(dirname $tofile)
+        cp $fromfile $tofile
+        chown $USERNAME:$GROUP $tofile
+      else
+        echo "skipping missing shared file $shared_file"
+      fi
+
+    done
+  fi
+
+  # user-specific files
   for subdir in bin etc; do
     if [[ -d $fromdir/$subdir ]]; then
       for nextfile in $(ls $fromdir/$subdir); do
