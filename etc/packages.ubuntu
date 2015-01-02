@@ -1,5 +1,7 @@
 bash
 man-db
+curl
+wget
 vim
 git
 tmux
