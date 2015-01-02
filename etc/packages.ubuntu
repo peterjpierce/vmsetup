@@ -11,6 +11,7 @@ bison
 flex
 telnet
 iptables
+zip
 zlib1g-dev
 libreadline-gplv2-dev
 libncursesw5-dev
