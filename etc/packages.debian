@@ -14,9 +14,9 @@ bison
 flex
 telnet
 zip
+python-dev
 zlib1g-dev
 libperl-dev
-libpython-dev
 libreadline-gplv2-dev
 libncursesw5-dev
 libssl-dev
