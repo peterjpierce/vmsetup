@@ -1,10 +1,11 @@
-bash
-man-db
-curl
-wget
 vim
 git
+curl
+wget
 tmux
+iptables
+bash
+man-db
 gcc
 g++
 make
@@ -12,9 +13,10 @@ mutt
 bison
 flex
 telnet
-iptables
 zip
 zlib1g-dev
+libperl-dev
+libpython-dev
 libreadline-gplv2-dev
 libncursesw5-dev
 libssl-dev
