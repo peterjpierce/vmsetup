@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+default_basedir=/opt/pg
+url_pattern='https://ftp.postgresql.org/pub/source/vx.y.z/postgresql-x.y.z.tar.gz'
+
+me=$(basename $0)
+batch_tag=$(date +%Y%m%d_%H%M%S)
+tmpdir=/tmp/pgbuild_$batch_tag
+
+usage() {
+  echo "usage: $me <version> [install_dir]"
+  echo "   ex: $me 9.4.0"
+  echo "       $me 9.4.0 /home/someone/py/9.4.0"
+  echo "(default install_dir=$default_basedir/<version>)"
+  exit 0
+}
+
+# handle args
+if [[ $# -lt 1 ]] || [[ $# -gt 2 ]]; then
+  usage
+else
+  if [[ $1 =~ [891][01234]?\.[0-9]+\.[0-9]+ ]]; then
+    version=$1
+    [[ -n $2 ]] && prefix=$2 || prefix=$default_basedir/$version
+    if [[ -e $prefix ]]; then
+      echo "cannot proceed because \"$prefix\" already exists"
+      exit 1
+    fi
+  else
+    echo "\"$1\" is not a valid version"
+    exit 1
+  fi
+fi
+
+# download source
+source=$(echo $url_pattern | perl -pe "s/x.y.z/$version/g")
+mkdir $tmpdir && cd $tmpdir
+curl -LO $source
+[[ $? -gt 0 ]] && echo "error downloading source" && exit 1
+
+# untar
+tar -xzf postgresql-$version.tar.gz && cd postgresql-$version
+if [[ $? -gt 0 ]] || [[ ! -f ./configure ]]; then
+  echo "error obtaining a valid set of source files"
+fi
+
+# configure
+./configure \
+  --prefix=$prefix \
+  --with-perl --with-python \
+  | tee /$tmpdir/postgresql-$version-configure-$batch_tag.log
+[[ $? -gt 0 ]] && echo "error configuring" && exit 1
+
+# build
+make
+[[ $? -gt 0 ]] && echo "error building" && exit 1
+
+# run tests
+make check
+[[ $? -gt 0 ]] && echo "error with tests" && exit 1
+
+# install
+echo "installing to $prefix"
+make install >> $tmpdir/postgresql-$version-install-$batch_tag.log
+[[ $? -gt 0 ]] && echo "error installing" && exit 1
+
+# build contribs
+echo "building contribs"
+contrib_log=$tmpdir/postgresql-$version-contribs-$batch_tag.log
+cd contrib
+echo "logging to $contrib_log"
+make all >> $contrib_log
+[[ $? -gt 0 ]] && echo "error building contribs" && exit 1
+
+# install contribs
+echo "installing contribs"
+make install >> $contrib_log
+[[ $? -gt 0 ]] && echo "error installing contribs" && exit 1
+
+# show results
+echo "listing of $prefix/bin"
+ls -l $prefix/bin
